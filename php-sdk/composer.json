@@ -1,0 +1,12 @@
+{
+  "name": "singlebase/singlebase-php",
+  "description": "Singlebase PHP SDK",
+  "autoload": {
+    "psr-4": {
+      "Singlebase\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=8.0"
+  }
+}
