@@ -21,26 +21,26 @@ def test_jsonext_serialization():
 
 
 @respx.mock
-def test_client_call_success():
+def test_client_dispatch_success():
     route = respx.post("https://cloud.singlebaseapis.com/api/test").mock(
         return_value=httpx.Response(200, json={"data": {"msg": "ok"}, "meta": {}})
     )
 
     c = Client(api_key="abc", endpoint_key="test")
-    r = c.call({"op": "ping"})
+    r = c.dispatch({"op": "ping"})
     assert isinstance(r, ResultOK)
     assert r.data["msg"] == "ok"
     assert route.called
 
 
 @respx.mock
-def test_client_call_error():
+def test_client_dispatch_error():
     respx.post("https://cloud.singlebaseapis.com/api/test").mock(
         return_value=httpx.Response(400, json={"error": "Bad Request"})
     )
 
     c = Client(api_key="abc", endpoint_key="test")
-    r = c.call({"op": "ping"})
+    r = c.dispatch({"op": "ping"})
     assert isinstance(r, ResultError)
     assert r.error == "Bad Request"
 

@@ -14,7 +14,7 @@ func main() {
 	payload := map[string]interface{}{
 		"op": "ping",
 	}
-	result := client.Call(payload, nil, "")
+	result := client.Dispatch(payload, nil, "")
 	if result.Ok {
 		fmt.Println("✅ Success:", result.Data)
 	} else {

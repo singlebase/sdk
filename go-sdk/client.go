@@ -36,8 +36,8 @@ func NewClient(apiKey string, apiUrl string, endpointKey string, headers map[str
 	return &Client{APIKey: apiKey, APIUrl: apiUrl, Headers: headers}, nil
 }
 
-// Call makes a synchronous request to the API.
-func (c *Client) Call(payload map[string]interface{}, headers map[string]string, bearerToken string) *Result {
+// Dispatch makes a synchronous request to the API.
+func (c *Client) Dispatch(payload map[string]interface{}, headers map[string]string, bearerToken string) *Result {
 	// Validate payload
 	op, ok := payload["op"]
 	if !ok || op == "" {

@@ -7,7 +7,7 @@ const client = new Client({
 
 const payload = { op: "ping" };
 
-client.call(payload).then((res) => {
+client.dispatch(payload).then((res) => {
   if (res.ok) {
     console.log("✅ Success:", res.data);
   } else {

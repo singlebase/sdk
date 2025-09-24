@@ -21,30 +21,30 @@ class ClientTest extends TestCase
         $this->invokeMethod($client, "validatePayload", [["foo" => "bar"]]);
     }
 
-    public function testCallSuccess()
+    public function testDispatchSuccess()
     {
         $client = $this->getMockBuilder(Client::class)
             ->setConstructorArgs(["abc", null, "test"])
-            ->onlyMethods(["call"])
+            ->onlyMethods(["dispatch"])
             ->getMock();
 
-        $client->method("call")->willReturn(new ResultOK(["msg" => "ok"]));
+        $client->method("dispatch")->willReturn(new ResultOK(["msg" => "ok"]));
 
-        $result = $client->call(["op" => "ping"]);
+        $result = $client->dispatch(["op" => "ping"]);
         $this->assertInstanceOf(ResultOK::class, $result);
         $this->assertEquals("ok", $result->data["msg"]);
     }
 
-    public function testCallError()
+    public function testDispatchError()
     {
         $client = $this->getMockBuilder(Client::class)
             ->setConstructorArgs(["abc", null, "test"])
-            ->onlyMethods(["call"])
+            ->onlyMethods(["dispatch"])
             ->getMock();
 
-        $client->method("call")->willReturn(new ResultError("Bad Request", 400));
+        $client->method("dispatch")->willReturn(new ResultError("Bad Request", 400));
 
-        $result = $client->call(["op" => "ping"]);
+        $result = $client->dispatch(["op" => "ping"]);
         $this->assertInstanceOf(ResultError::class, $result);
         $this->assertEquals("Bad Request", $result->error);
     }

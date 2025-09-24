@@ -55,7 +55,7 @@ class Client:
             raise TypeError("INVALID_OPERATION_TYPE")
         return data  # type: ignore
 
-    def call(
+    def dispatch(
         self,
         payload: PayloadType,
         headers: Optional[dict] = None,
@@ -91,7 +91,7 @@ class Client:
         except Exception as e:
             return ResultError(error=f"EXCEPTION: {e}", status_code=500, ok=False)
 
-    async def call_async(
+    async def dispatch_async(
         self,
         payload: PayloadType,
         headers: Optional[dict] = None,

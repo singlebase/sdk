@@ -67,7 +67,7 @@ export class Client {
   }
 
   /**
-   * Call the Singlebase API with the given payload.
+   * Dispatch the Singlebase API with the given payload.
    *
    * @param payload - The request payload (must include 'op').
    * @param headers - Optional additional headers to merge with defaults.
@@ -75,7 +75,7 @@ export class Client {
    *
    * @returns {Promise<Result>} The API response wrapped in a Result object.
    */
-  async call(
+  async dispatch(
     payload: PayloadType,
     headers?: Record<string, string>,
     bearerToken?: string

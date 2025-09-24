@@ -16,7 +16,7 @@ Official SDKs for interacting with the Singlebase API. Available in Python, Java
 from singlebase import Client
 
 client = Client(api_key="your-api-key", endpoint_key="vector-db")
-result = client.call({"op": "ping"})
+result = client.dispatch({"op": "ping"})
 
 if result.ok:
     print("✅ Success:", result.data)
@@ -31,14 +31,14 @@ else:
 ### Install
 
 ```
-npm install singlebase-js
+npm install @singlebase/singlebase-js
 # or
-yarn add singlebase-js
+yarn add @singlebase/singlebase-js
 ```
 
 ### Example
 
-`import { Client } from "singlebase-js";`
+`import { Client } from "@singlebase/singlebase-js";`
 
 ```
 const client = new Client({
@@ -46,7 +46,7 @@ const client = new Client({
   endpointKey: "vector-db",
 });
 
-const result = await client.call({ op: "ping" });
+const result = await client.dispatch({ op: "ping" });
 
 if (result.ok) {
   console.log("✅ Success:", result.data);
@@ -73,7 +73,7 @@ require 'vendor/autoload.php';
 use Singlebase\Client;
 
 $client = new Client(apiKey: "your-api-key", endpointKey: "vector-db");
-$result = $client->call([ "op" => "ping" ]);
+$result = $client->dispatch([ "op" => "ping" ]);
 
 if ($result->ok) {
     echo "✅ Success: " . print_r($result->data, true);
@@ -107,7 +107,7 @@ func main() {
 		panic(err)
 	}
 
-	result := client.Call(map[string]interface{}{"op": "ping"}, nil, "")
+	result := client.Dispatch(map[string]interface{}{"op": "ping"}, nil, "")
 	if result.Ok {
 		fmt.Println("✅ Success:", result.Data)
 	} else {
@@ -118,7 +118,7 @@ func main() {
 
 📦 Features (all SDKs)
 
-✅ Simple Client for API calls
+✅ Simple Client for API dispatchs
 
 ✅ Consistent Result / ResultOK / ResultError types
 

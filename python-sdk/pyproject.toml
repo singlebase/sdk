@@ -9,7 +9,7 @@ description = "Singlebase Python SDK"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
-  { name = "Your Name", email = "you@example.com" }
+  { name = "Singlebase.ai", email = "singlebase@singlebase.ai" }
 ]
 requires-python = ">=3.9"
 keywords = ["singlebase", "sdk", "api", "baas"]

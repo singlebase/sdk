@@ -53,14 +53,14 @@ class Client
     }
 
     /**
-     * Make an API call.
+     * Dispatch an api call
      *
      * @param array $payload Request payload
      * @param array $headers Optional additional headers
      * @param string|null $bearerToken Optional bearer token
      * @return Result
      */
-    public function call(array $payload, array $headers = [], ?string $bearerToken = null): Result
+    public function dispatch(array $payload, array $headers = [], ?string $bearerToken = null): Result
     {
         try {
             $this->validatePayload($payload);

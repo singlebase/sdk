@@ -43,7 +43,7 @@ test("Client.validatePayload invalid", () => {
   expect(() => client.validatePayload("bad" as any)).toThrow(SinglebaseError);
 });
 
-test("Client.call success", async () => {
+test("Client.dispatch success", async () => {
   (global.fetch as jest.Mock).mockResolvedValueOnce({
     ok: true,
     status: 200,
@@ -51,12 +51,12 @@ test("Client.call success", async () => {
   });
 
   const client = new Client({ apiKey: "abc", endpointKey: "test" });
-  const result = await client.call({ op: "ping" });
+  const result = await client.dispatch({ op: "ping" });
   expect(result).toBeInstanceOf(ResultOK);
   expect(result.data.msg).toBe("ok");
 });
 
-test("Client.call error", async () => {
+test("Client.dispatch error", async () => {
   (global.fetch as jest.Mock).mockResolvedValueOnce({
     ok: false,
     status: 400,
@@ -64,7 +64,7 @@ test("Client.call error", async () => {
   });
 
   const client = new Client({ apiKey: "abc", endpointKey: "test" });
-  const result = await client.call({ op: "ping" });
+  const result = await client.dispatch({ op: "ping" });
   expect(result).toBeInstanceOf(ResultError);
   expect(result.error).toBe("Bad Request");
 });

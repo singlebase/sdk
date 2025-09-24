@@ -6,7 +6,7 @@ use Singlebase\Client;
 use Singlebase\Upload;
 
 $client = new Client(apiKey: "my-api-key", endpointKey: "vector-db");
-$result = $client->call([ "op" => "ping" ]);
+$result = $client->dispatch([ "op" => "ping" ]);
 
 if ($result->ok) {
     echo "✅ Success: ";

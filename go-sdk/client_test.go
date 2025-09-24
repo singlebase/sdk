@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestClientCallSuccess(t *testing.T) {
+func TestClientDispatchSuccess(t *testing.T) {
 	// Mock API server
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -21,7 +21,7 @@ func TestClientCallSuccess(t *testing.T) {
 	defer server.Close()
 
 	client, _ := NewClient("abc", server.URL, "", nil)
-	result := client.Call(map[string]interface{}{"op": "ping"}, nil, "")
+	result := client.Dispatch(map[string]interface{}{"op": "ping"}, nil, "")
 
 	if !result.Ok {
 		t.Errorf("Expected Ok=true, got %v", result.Ok)
@@ -31,7 +31,7 @@ func TestClientCallSuccess(t *testing.T) {
 	}
 }
 
-func TestClientCallError(t *testing.T) {
+func TestClientDispatchError(t *testing.T) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		resp := map[string]interface{}{
@@ -43,7 +43,7 @@ func TestClientCallError(t *testing.T) {
 	defer server.Close()
 
 	client, _ := NewClient("abc", server.URL, "", nil)
-	result := client.Call(map[string]interface{}{"op": "ping"}, nil, "")
+	result := client.Dispatch(map[string]interface{}{"op": "ping"}, nil, "")
 
 	if result.Ok {
 		t.Errorf("Expected Ok=false, got %v", result.Ok)
@@ -55,7 +55,7 @@ func TestClientCallError(t *testing.T) {
 
 func TestClientInvalidPayload(t *testing.T) {
 	client, _ := NewClient("abc", "http://localhost", "", nil)
-	result := client.Call(map[string]interface{}{}, nil, "")
+	result := client.Dispatch(map[string]interface{}{}, nil, "")
 	if result.Ok {
 		t.Errorf("Expected Ok=false for invalid payload")
 	}
