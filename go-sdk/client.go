@@ -3,99 +3,87 @@ package singlebase
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
 
-// Client for Singlebase API requests.
 type Client struct {
-	APIKey  string
-	APIUrl  string
-	Headers map[string]string
+	apiKey   string
+	apiUrl   string
+	headers  map[string]string
 }
 
-// Base API URL for Singlebase Cloud
-const BaseAPIURL = "https://cloud.singlebaseapis.com/api"
+const BaseApiUrl = "https://cloud.singlebaseapis.com/api"
 
-// NewClient initializes a new Client.
-// apiKey: required API key.
-// apiUrl: full URL or empty if using endpointKey.
-// endpointKey: appended to base URL if apiUrl is empty.
 func NewClient(apiKey string, apiUrl string, endpointKey string, headers map[string]string) (*Client, error) {
 	if apiKey == "" {
-		return nil, errors.New("MISSING_API_KEY")
+		return nil, fmt.Errorf("MISSING_API_KEY")
 	}
 	if apiUrl == "" && endpointKey == "" {
-		return nil, errors.New("MISSING_ENDPOINT_KEY")
+		return nil, fmt.Errorf("MISSING_ENDPOINT_KEY")
 	}
-	if apiUrl == "" {
-		apiUrl = BaseAPIURL + "/" + endpointKey
+	if headers == nil {
+		headers = map[string]string{}
 	}
-	return &Client{APIKey: apiKey, APIUrl: apiUrl, Headers: headers}, nil
+	finalUrl := apiUrl
+	if finalUrl == "" {
+		finalUrl = fmt.Sprintf("%s/%s", BaseApiUrl, endpointKey)
+	}
+
+	return &Client{apiKey: apiKey, apiUrl: finalUrl, headers: headers}, nil
 }
 
-// Dispatch makes a synchronous request to the API.
-func (c *Client) Dispatch(payload map[string]interface{}, headers map[string]string, bearerToken string) *Result {
-	// Validate payload
-	op, ok := payload["op"]
-	if !ok || op == "" {
-		return ResultError("INVALID_PAYLOAD: missing 'op'", 400)
+func (c *Client) validatePayload(payload map[string]any) error {
+	if _, ok := payload["op"].(string); !ok {
+		return fmt.Errorf("INVALID_PAYLOAD: missing 'op'")
+	}
+	return nil
+}
+
+// Dispatch a request synchronously.
+func (c *Client) Dispatch(payload map[string]any, headers map[string]string, bearerToken string) *Result {
+	if err := c.validatePayload(payload); err != nil {
+		return ResultError(err.Error(), 400)
 	}
 
-	// Build headers
-	reqHeaders := map[string]string{
-		"x-api-key":        c.APIKey,
-		"x-sbc-sdk-client": "singlebase-go",
-		"Content-Type":     "application/json",
-	}
-	for k, v := range c.Headers {
-		reqHeaders[k] = v
+	allHeaders := map[string]string{}
+	for k, v := range c.headers {
+		allHeaders[k] = v
 	}
 	for k, v := range headers {
-		reqHeaders[k] = v
+		allHeaders[k] = v
 	}
+	allHeaders["x-api-key"] = c.apiKey
+	allHeaders["x-sbc-sdk-client"] = "singlebase-go"
+	allHeaders["Content-Type"] = "application/json"
 	if bearerToken != "" {
-		reqHeaders["Authorization"] = "Bearer " + bearerToken
+		allHeaders["Authorization"] = "Bearer " + bearerToken
 	}
 
-	// Encode payload
-	body, err := json.Marshal(payload)
+	body, _ := json.Marshal(payload)
+	req, err := http.NewRequest("POST", c.apiUrl, bytes.NewBuffer(body))
 	if err != nil {
-		return ResultError("EXCEPTION: "+err.Error(), 500)
+		return ResultError(err.Error(), 500)
 	}
-
-	// Build request
-	req, err := http.NewRequest("POST", c.APIUrl, bytes.NewBuffer(body))
-	if err != nil {
-		return ResultError("EXCEPTION: "+err.Error(), 500)
-	}
-	for k, v := range reqHeaders {
+	for k, v := range allHeaders {
 		req.Header.Set(k, v)
 	}
 
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return ResultError("EXCEPTION: "+err.Error(), 500)
+		return ResultError(err.Error(), 500)
 	}
 	defer resp.Body.Close()
 
 	respBody, _ := io.ReadAll(resp.Body)
-	var parsed map[string]interface{}
-	if err := json.Unmarshal(respBody, &parsed); err != nil {
-		return ResultError("EXCEPTION: "+err.Error(), 500)
-	}
+	var parsed map[string]any
+	json.Unmarshal(respBody, &parsed)
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		data, _ := parsed["data"].(map[string]interface{})
-		meta, _ := parsed["meta"].(map[string]interface{})
+		data, _ := parsed["data"].(map[string]any)
+		meta, _ := parsed["meta"].(map[string]any)
 		return ResultOK(data, meta, resp.StatusCode)
 	}
-	errMsg, _ := parsed["error"].(string)
-	if errMsg == "" {
-		errMsg = "Unknown Error"
-	}
-	return ResultError(errMsg, resp.StatusCode)
+	return ResultError(fmt.Sprint(parsed["error"]), resp.StatusCode)
 }

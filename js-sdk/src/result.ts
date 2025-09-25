@@ -1,6 +1,3 @@
-/**
- * Represents the result of an API operation.
- */
 export class Result {
   data: Record<string, any>;
   meta: Record<string, any>;
@@ -8,15 +5,6 @@ export class Result {
   error?: string | null;
   statusCode: number;
 
-  /**
-   * Construct a Result object.
-   *
-   * @param props.data - Response data from the API.
-   * @param props.meta - Metadata associated with the response.
-   * @param props.ok - Whether the operation was successful.
-   * @param props.error - Error message if operation failed.
-   * @param props.statusCode - HTTP status code of the response.
-   */
   constructor({
     data = {},
     meta = {},
@@ -56,20 +44,38 @@ export class Result {
   toString() {
     return `<Result ok=${this.ok} status=${this.statusCode} error=${this.error}>`;
   }
+
+  /**
+   * Retrieve a value from `data` using dot notation.
+   * If no path is given, returns full data object.
+   * If path not found, returns defaultValue.
+   * Throws TypeError if traversal encounters non-object value.
+   */
+  getData(path?: string, defaultValue: any = null): any {
+    if (!path) return this.data;
+
+    let current: any = this.data;
+    for (const part of path.split(".")) {
+      if (typeof current !== "object" || current === null) {
+        throw new TypeError(
+          `Cannot traverse '${part}' — expected object, got ${typeof current}`
+        );
+      }
+      if (!(part in current)) {
+        return defaultValue;
+      }
+      current = current[part];
+    }
+    return current;
+  }
 }
 
-/**
- * Represents a successful API operation result.
- */
 export class ResultOK extends Result {
   constructor(props: any = {}) {
     super({ ...props, ok: true });
   }
 }
 
-/**
- * Represents a failed API operation result.
- */
 export class ResultError extends Result {
   constructor(props: any = {}) {
     super({ ...props, ok: false });

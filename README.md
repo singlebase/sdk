@@ -1,167 +1,259 @@
 # Singlebase SDKs
 
-Official SDKs for interacting with the Singlebase API. Available in Python, JavaScript/TypeScript, PHP, and Go.
+Official SDKs for interacting with the [Singlebase](https://singlebase.cloud) API.  
+
+Available in:
+- **Python**
+- **JavaScript/TypeScript**
+- **PHP**
+- **Go**
+
+These SDKs provide:
+
+- Simple `Client` interface for making API requests  
+- Standardized `Result` object with `ok`, `data`, `meta`, `error`, `statusCode`  
+- Dot-notation access with `get_data` / `getData` / `GetData`  
+- Presigned file upload helpers (Python, JS, PHP, Go)  
 
 ---
 
-## Python SDK (singlebase)
+## Python SDK (`singlebase`)
 
 ### Install
-
-`pip install singlebase`
-
-### Example
-
+```bash
+pip install singlebase
 ```
+
+### Usage
+```python
 from singlebase import Client
 
-client = Client(api_key="your-api-key", endpoint_key="vector-db")
+client = Client(api_key="your-api-key", endpoint_key="endpoint-key")
+
 result = client.dispatch({"op": "ping"})
 
 if result.ok:
-    print("✅ Success:", result.data)
+    print("Success:", result.data)
 else:
-    print("❌ Error:", result.error)
+    print("Error:", result.error)
+```
+
+### Async
+```python
+import asyncio
+from singlebase import Client
+
+async def main():
+    client = Client(api_key="your-api-key", endpoint_key="endpoint-key")
+    result = await client.dispatch_async({"op": "ping"})
+    print(result)
+
+asyncio.run(main())
+```
+
+### Result Object
+```python
+print(result.to_dict())
+```
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `ok` | `bool` | True if request succeeded |
+| `data` | `dict` | Response payload |
+| `meta` | `dict` | Extra metadata (pagination, etc.) |
+| `error` | `str` | Error message if failed |
+| `status_code` | `int` | HTTP status code |
+
+### Dot Notation Access
+```python
+val = result.get_data("address.city.city_fullname", default="N/A")
+print(val)
 ```
 
 ---
 
-## JavaScript / TypeScript SDK (singlebase-js)
+## JavaScript / TypeScript SDK (`singlebase-js`)
 
 ### Install
-
-```
-npm install @singlebase/singlebase-js
+```bash
+npm install singlebase-js
 # or
-yarn add @singlebase/singlebase-js
+yarn add singlebase-js
 ```
 
-### Example
+### Usage
+```typescript
+import { Client } from "singlebase-js";
 
-`import { Client } from "@singlebase/singlebase-js";`
-
-```
 const client = new Client({
   apiKey: "your-api-key",
-  endpointKey: "vector-db",
+  endpointKey: "endpoint-key"
 });
 
 const result = await client.dispatch({ op: "ping" });
 
 if (result.ok) {
-  console.log("✅ Success:", result.data);
+  console.log("Success:", result.data);
 } else {
-  console.error("❌ Error:", result.error);
+  console.error("Error:", result.error);
 }
+```
+
+### Result Object
+```typescript
+console.log(result.toObject());
+```
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `ok` | `boolean` | True if request succeeded |
+| `data` | `object` | Response payload |
+| `meta` | `object` | Extra metadata |
+| `error` | `string` | Error message if failed |
+| `statusCode` | `number` | HTTP status code |
+
+### Dot Notation Access
+```typescript
+console.log(result.getData("address.city.city_fullname")); // "San Francisco"
+console.log(result.getData("address.country", "USA"));     // "USA"
 ```
 
 ---
 
-## PHP SDK (singlebase/singlebase-php)
+## PHP SDK (`singlebase-php`)
 
 ### Install
-
-`composer require singlebase/singlebase-php`
-
-### Example
-
+```bash
+composer require singlebase/singlebase-php
 ```
-<?php
 
+### Usage
+```php
+<?php
 require 'vendor/autoload.php';
 
 use Singlebase\Client;
 
-$client = new Client(apiKey: "your-api-key", endpointKey: "vector-db");
+$client = new Client(apiKey: "your-api-key", endpointKey: "endpoint-key");
 $result = $client->dispatch([ "op" => "ping" ]);
 
 if ($result->ok) {
-    echo "✅ Success: " . print_r($result->data, true);
+    echo "Success: " . print_r($result->data, true);
 } else {
-    echo "❌ Error: " . $result->error;
+    echo "Error: " . $result->error;
 }
+```
 
+### Result Object
+```php
+print_r($result->toArray());
+```
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `ok` | `bool` | True if request succeeded |
+| `data` | `array` | Response payload |
+| `meta` | `array` | Extra metadata |
+| `error` | `string` | Error message if failed |
+| `statusCode` | `int` | HTTP status code |
+
+### Dot Notation Access
+```php
+echo $result->getData("address.city.city_fullname"); // "San Francisco"
+echo $result->getData("address.country", "USA");     // "USA"
 ```
 
 ---
 
-## Go SDK (singlebase-go)
+## Go SDK (`singlebase-go`)
 
 ### Install
-
-`go get github.com/singlebase/singlebase-go@latest`
-
-### Example
-
+```bash
+go get github.com/singlebase/sdk/go-sdk@latest
 ```
+
+### Usage
+```go
 package main
 
 import (
-	"fmt"
-	"github.com/you/singlebase-go"
+    "fmt"
+    "github.com/singlebase/sdk/go-sdk"
 )
 
 func main() {
-	client, err := singlebase.NewClient("your-api-key", "", "vector-db", nil)
-	if err != nil {
-		panic(err)
-	}
+    client, err := singlebase.NewClient("your-api-key", "", "endpoint-key", nil)
+    if err != nil {
+        panic(err)
+    }
 
-	result := client.Dispatch(map[string]interface{}{"op": "ping"}, nil, "")
-	if result.Ok {
-		fmt.Println("✅ Success:", result.Data)
-	} else {
-		fmt.Println("❌ Error:", result.Error)
-	}
+    result := client.Dispatch(map[string]any{"op": "ping"}, nil, "")
+    if result.Ok {
+        fmt.Println("Success:", result.Data)
+    } else {
+        fmt.Println("Error:", result.Error)
+    }
 }
 ```
 
-📦 Features (all SDKs)
+### Result Object
+```go
+fmt.Println(result.ToMap())
+```
 
-✅ Simple Client for API dispatchs
+| Field | Type | Description |
+|-------|------|-------------|
+| `Ok` | `bool` | True if request succeeded |
+| `Data` | `map[string]any` | Response payload |
+| `Meta` | `map[string]any` | Extra metadata |
+| `Error` | `string` | Error message if failed |
+| `StatusCode` | `int` | HTTP status code |
 
-✅ Consistent Result / ResultOK / ResultError types
-
-✅ Support for synchronous & asynchronous requests (Python/JS)
-
-✅ Presigned file uploads helpers (Python, JS, PHP, Go)
-
-✅ Built-in error handling
-
-🤝 Contributing
-
-Fork this repo and open a PR 🚀
-
-Run tests before submitting (pytest, npm test, phpunit, go test ./...)
+### Dot Notation Access
+```go
+val, _ := result.GetData("address.city.city_fullname", "N/A")
+fmt.Println(val) // "San Francisco"
+```
 
 ---
 
-### CI/CD (per language)
+## File Uploads (Presigned URL)
 
-Inside .github/workflows/, we can have:
+All SDKs provide helpers to upload files to a presigned URL (e.g., AWS S3).
+Examples differ slightly by language:
 
-python.yml → runs pytest, publishes to PyPI on release tag
+### Python
+```python
+from singlebase import upload_presigned_file
+upload_presigned_file("myfile.txt", {"url": "...", "fields": {"key": "uploads/myfile.txt"}})
+```
 
-node.yml → runs npm test, publishes to npm
+### JavaScript/TypeScript
+```typescript
+import { uploadPresignedFile } from "singlebase-js";
+await uploadPresignedFile("myfile.txt", { url: "...", fields: { key: "uploads/myfile.txt" } });
+```
 
-php.yml → runs phpunit, auto-updates Packagist (webhook or action)
+### PHP
+```php
+use Singlebase\Upload;
+Upload::presignedFile("myfile.txt", [ "url" => "...", "fields" => ["key" => "uploads/myfile.txt"] ]);
+```
 
-go.yml → runs go test ./..., release on git tag
+### Go
+```go
+ok, err := singlebase.UploadPresignedFile("myfile.txt", map[string]any{
+    "url": "https://bucket.s3.amazonaws.com",
+    "fields": map[string]any{"key": "uploads/myfile.txt"},
+})
+```
 
-Each can be triggered separately when tagging a release like python-v0.1.0, js-v0.1.0, etc.
+---
 
-### Publishing
+## Result Helper Methods
 
-Python → from /python using pyproject.toml
+Every SDK implements these:
 
-JS → from /js using npm publish
-
-PHP → from /php using Packagist + Composer
-
-Go → from /go (git tag)
-
-## License
-
-MIT 
-
-© 2025++ Singlebase
+- `to_dict()` / `toObject()` / `toArray()` / `ToMap()` → serialize to native dict/object/map
+- `get_data(path, default)` / `getData(path, default)` / `GetData(path, default)` → dot-notation nested access with default fallback
+- `__repr__` / `toString()` / `__toString__` / `String()` → human-readable summary

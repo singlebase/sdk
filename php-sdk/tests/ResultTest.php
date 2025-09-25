@@ -1,28 +1,40 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Singlebase\Result;
 use Singlebase\ResultOK;
 use Singlebase\ResultError;
 
-class ResultTest extends TestCase
-{
-    public function testResultToArrayAndToString()
-    {
-        $r = new Result(["foo" => "bar"], [], true, null, 201);
-        $arr = $r->toArray();
+class ResultTest extends TestCase {
+    public function testGetDataSuccessAndDefault() {
+        $r = new ResultOK([
+            "data" => [
+                "address" => [
+                    "city" => [
+                        "city_fullname" => "San Francisco",
+                        "zipcode" => 94107
+                    ]
+                ]
+            ]
+        ]);
 
-        $this->assertEquals("bar", $arr["data"]["foo"]);
-        $this->assertStringContainsString("Result", (string)$r);
+        // Full data
+        $this->assertIsArray($r->getData());
+
+        // Dot notation
+        $this->assertEquals("San Francisco", $r->getData("address.city.city_fullname"));
+        $this->assertEquals(94107, $r->getData("address.city.zipcode"));
+
+        // Missing key returns default
+        $this->assertEquals("USA", $r->getData("address.country", "USA"));
     }
 
-    public function testResultOkAndError()
-    {
-        $ok = new ResultOK(["success" => true]);
-        $err = new ResultError("Something failed", 400);
+    public function testGetDataThrowsTypeError() {
+        $this->expectException(\TypeError::class);
 
-        $this->assertTrue($ok->ok);
-        $this->assertFalse($err->ok);
-        $this->assertEquals(400, $err->statusCode);
+        $r = new ResultOK([
+            "data" => [ "user" => [ "id" => 123 ] ]
+        ]);
+
+        $r->getData("user.id.value");
     }
 }

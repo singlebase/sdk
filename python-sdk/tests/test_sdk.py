@@ -1,7 +1,14 @@
 import pytest
 import httpx
 import respx
-from singlebase import Client, ResultOK, ResultError, JSONExt, upload_presigned_file
+from singlebase import (
+    Client,
+    Result,
+    ResultOK,
+    ResultError,
+    JSONExt,
+    upload_presigned_file,
+)
 
 
 def test_result_ok_and_error():
@@ -20,8 +27,39 @@ def test_jsonext_serialization():
     assert isinstance(back, dict)
 
 
+def test_result_get_data_success_and_default():
+    r = ResultOK(
+        data={
+            "address": {
+                "city": {
+                    "city_fullname": "San Francisco",
+                    "zipcode": 94107,
+                }
+            }
+        }
+    )
+
+    # Full data if no path
+    assert isinstance(r.get_data(), dict)
+
+    # Nested dot path
+    assert r.get_data("address.city.city_fullname") == "San Francisco"
+    assert r.get_data("address.city.zipcode") == 94107
+
+    # Missing key returns default
+    assert r.get_data("address.country", default="USA") == "USA"
+
+
+def test_result_get_data_type_error():
+    r = ResultOK(data={"user": {"id": 123}})
+
+    # user.id is an int → trying to traverse deeper should raise
+    with pytest.raises(TypeError):
+        r.get_data("user.id.value")
+
+
 @respx.mock
-def test_client_dispatch_success():
+def test_client_call_success():
     route = respx.post("https://cloud.singlebaseapis.com/api/test").mock(
         return_value=httpx.Response(200, json={"data": {"msg": "ok"}, "meta": {}})
     )
@@ -34,7 +72,7 @@ def test_client_dispatch_success():
 
 
 @respx.mock
-def test_client_dispatch_error():
+def test_client_call_error():
     respx.post("https://cloud.singlebaseapis.com/api/test").mock(
         return_value=httpx.Response(400, json={"error": "Bad Request"})
     )

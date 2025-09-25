@@ -2,94 +2,72 @@
 
 namespace Singlebase;
 
-/**
- * Represents the result of an API operation.
- */
-class Result
-{
-    /** @var array Response data */
+class Result {
     public array $data;
-
-    /** @var array Metadata from API */
     public array $meta;
-
-    /** @var bool Whether operation succeeded */
     public bool $ok;
-
-    /** @var string|null Error message if failed */
     public ?string $error;
-
-    /** @var int HTTP status code */
     public int $statusCode;
 
-    /**
-     * Construct a Result.
-     *
-     * @param array $data Response data
-     * @param array $meta Metadata
-     * @param bool $ok Whether operation succeeded
-     * @param string|null $error Error message
-     * @param int $statusCode HTTP status code
-     */
-    public function __construct(
-        array $data = [],
-        array $meta = [],
-        bool $ok = true,
-        ?string $error = null,
-        int $statusCode = 200
-    ) {
-        $this->data = $data;
-        $this->meta = $meta;
-        $this->ok = $ok;
-        $this->error = $error;
-        $this->statusCode = $statusCode;
+    public function __construct(array $props = []) {
+        $this->data = $props['data'] ?? [];
+        $this->meta = $props['meta'] ?? [];
+        $this->ok = $props['ok'] ?? true;
+        $this->error = $props['error'] ?? null;
+        $this->statusCode = $props['statusCode'] ?? 200;
     }
 
-    /**
-     * Convert to associative array.
-     *
-     * @return array
-     */
-    public function toArray(): array
-    {
+    public function toArray(): array {
         return [
             "data" => $this->data,
             "meta" => $this->meta,
             "ok" => $this->ok,
             "error" => $this->error,
-            "statusCode" => $this->statusCode,
+            "statusCode" => $this->statusCode
         ];
     }
 
-    public function __toString(): string
-    {
-        return sprintf(
-            "<Result ok=%s status=%d error=%s>",
-            $this->ok ? "true" : "false",
-            $this->statusCode,
-            $this->error ?? "null"
-        );
+    public function __toString(): string {
+        return "<Result ok=" . ($this->ok ? "true" : "false") .
+               " status=" . $this->statusCode .
+               " error=" . ($this->error ?? "null") . ">";
+    }
+
+    /**
+     * Retrieve value from data using dot notation.
+     *
+     * @param string|null $path Dot-notation path, e.g. "address.city.zip"
+     * @param mixed $default Default value if path not found
+     * @return mixed
+     * @throws \TypeError if traversal encounters a non-array type
+     */
+    public function getData(?string $path = null, $default = null) {
+        if ($path === null || $path === "") {
+            return $this->data;
+        }
+
+        $current = $this->data;
+        foreach (explode('.', $path) as $part) {
+            if (!is_array($current)) {
+                throw new \TypeError("Cannot traverse '$part' — expected array, got " . gettype($current));
+            }
+            if (!array_key_exists($part, $current)) {
+                return $default;
+            }
+            $current = $current[$part];
+        }
+        return $current;
     }
 }
 
-/**
- * Represents a successful API result.
- */
-class ResultOK extends Result
-{
-    public function __construct(array $data = [], array $meta = [], int $statusCode = 200)
-    {
-        parent::__construct($data, $meta, true, null, $statusCode);
+class ResultOK extends Result {
+    public function __construct(array $props = []) {
+        parent::__construct(array_merge($props, ["ok" => true]));
     }
 }
 
-/**
- * Represents a failed API result.
- */
-class ResultError extends Result
-{
-    public function __construct(?string $error, int $statusCode = 400)
-    {
-        parent::__construct([], [], false, $error, $statusCode);
+class ResultError extends Result {
+    public function __construct(array $props = []) {
+        parent::__construct(array_merge($props, ["ok" => false]));
     }
 }
